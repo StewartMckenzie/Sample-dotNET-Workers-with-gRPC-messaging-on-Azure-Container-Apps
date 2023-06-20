@@ -1,0 +1,45 @@
+name: Trigger auto deployment for container-app-4z2vh45giqipi
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - 'Frontend/**'
+    - '.github/workflows/container-app-4z2vh45giqipi-AutoDeployTrigger-9c0f3089-6e35-461f-823e-36a7c2575349.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CONTAINERAPP4Z2VH45GIQIPI_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.CONTAINERAPP4Z2VH45GIQIPI_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.CONTAINERAPP4Z2VH45GIQIPI_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}/Frontend 
+          registryUrl: containerregistry4z2vh45giqipi.azurecr.io
+          registryUsername: ${{ secrets.CONTAINERAPP4Z2VH45GIQIPI_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CONTAINERAPP4Z2VH45GIQIPI_REGISTRY_PASSWORD }}
+          containerAppName: container-app-4z2vh45giqipi
+          resourceGroup: sampledotnetworkerswithgrpcmessagingonazurecontainerapps8edb
+          imageToBuild: containerregistry4z2vh45giqipi.azurecr.io/container-app-4z2vh45giqipi:${{ github.sha }}
+          dockerfilePath: Dockerfile
+
+
